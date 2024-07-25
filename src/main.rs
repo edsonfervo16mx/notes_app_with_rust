@@ -1,13 +1,15 @@
-use serde::Serialize;
-use std::fs::File;
+use serde::{Deserialize, Serialize};
 use std::io::prelude::*;
-use std::io::Error;
+use std::io::Write;
 
-#[derive(Serialize)]
+#[derive(Serialize, Deserialize)]
+
 struct Tag {
-    id: u8,
+    id: u32,
     name: String,
 }
+
+const FILE_TAG: &str = "data/tags.json";
 
 fn main() {
     start_menu();
@@ -56,19 +58,44 @@ fn list_notes() {
     println!("List notes");
 }
 
-fn add_tag() -> Result<(), Error> {
+fn add_tag() -> Result<(), Box<dyn std::error::Error>> {
     println!("Add tag");
+    let mut name: String = String::new();
+    std::io::stdin().read_line(&mut name)?;
+    name = name.trim().to_string();
     let tag = Tag {
         id: 1,
-        name: String::from("Work"),
+        name: String::from(name),
     };
     println!("Tag id: {}", tag.id);
     println!("Tag name: {}", tag.name);
     let json_data = serde_json::to_string(&tag).unwrap();
     println!("JSON data: {}", json_data);
-    let mut file = File::create("data/tags.json")?;
-    file.write_all(json_data.as_bytes())?;
-    println!("Successfully");
+
+    // Leer el contenido actual del archivo
+    let mut file = std::fs::OpenOptions::new().read(true).open(FILE_TAG)?;
+    let mut contents = String::new();
+    file.read_to_string(&mut contents)?;
+
+    // Deserializar el contenido en un array
+    let mut tags: Vec<Tag> = match serde_json::from_str(&contents) {
+        Ok(tags) => tags,
+        Err(_) => vec![],
+    };
+
+    // Agregar el nuevo tag al array
+    tags.push(tag);
+
+    // Serializar el array de nuevo a JSON
+    let new_json_data = serde_json::to_string_pretty(&tags).unwrap();
+
+    // Escribir el nuevo JSON en el archivo
+    let mut file = std::fs::OpenOptions::new()
+        .write(true)
+        .truncate(true)
+        .open(FILE_TAG)?;
+    file.write_all(new_json_data.as_bytes())?;
+    println!("Successfully written to file");
     Ok(())
 }
 
