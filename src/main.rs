@@ -63,14 +63,6 @@ fn add_tag() -> Result<(), Box<dyn std::error::Error>> {
     let mut name: String = String::new();
     std::io::stdin().read_line(&mut name)?;
     name = name.trim().to_string();
-    let tag = Tag {
-        id: 1,
-        name: String::from(name),
-    };
-    println!("Tag id: {}", tag.id);
-    println!("Tag name: {}", tag.name);
-    let json_data = serde_json::to_string(&tag).unwrap();
-    println!("JSON data: {}", json_data);
 
     // Leer el contenido actual del archivo
     let mut file = std::fs::OpenOptions::new().read(true).open(FILE_TAG)?;
@@ -82,6 +74,20 @@ fn add_tag() -> Result<(), Box<dyn std::error::Error>> {
         Ok(tags) => tags,
         Err(_) => vec![],
     };
+
+    // Contar el número de elementos actuales
+    let new_id = (tags.len() as u32) + 1;
+
+    // Crear el nuevo tag con el id incrementado
+    let tag = Tag {
+        id: new_id,
+        name: String::from(name),
+    };
+
+    println!("Tag id: {}", tag.id);
+    println!("Tag name: {}", tag.name);
+    let json_data = serde_json::to_string(&tag).unwrap();
+    println!("JSON data: {}", json_data);
 
     // Agregar el nuevo tag al array
     tags.push(tag);
