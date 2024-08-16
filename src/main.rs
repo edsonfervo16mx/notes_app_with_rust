@@ -11,6 +11,33 @@ struct Tag {
 
 const FILE_TAG: &str = "data/tags.json";
 
+/////////////
+fn read_file_content(file_name: String) -> Vec<Tag> {
+    println!("Leyendo {}...", file_name);
+    // Leer el contenido actual del archivo
+    let mut file = std::fs::OpenOptions::new().read(true).open(FILE_TAG).expect("No se pudo abrir el archivo");
+    let mut contents = String::new();
+    file.read_to_string(&mut contents).expect("No se pudo leer el archivo");
+
+    // Deserializar el contenido en un array
+    let tags: Vec<Tag> = match serde_json::from_str(&contents) {
+        Ok(tags) => tags,
+        Err(_) => vec![],
+    };
+
+    // Imprimir tags en formato JSON
+    println!("Tags:");
+    let json_tags = serde_json::to_string_pretty(&tags).expect("No se pudo serializar a JSON");
+    println!("{}", json_tags);
+
+    // Retornar tags
+    // json_tags
+    tags
+}
+
+////////////
+
+
 fn main() {
     start_menu();
     let mut option = String::new();
@@ -105,8 +132,9 @@ fn add_tag() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
-fn list_tags() {
-    println!("List tags");
+fn list_tags(){
+    println!("Lista de etiquetas");
+    let contenido = read_file_content(FILE_TAG.to_string());
 }
 
 fn exit() {
